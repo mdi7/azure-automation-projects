@@ -1,0 +1,17 @@
+{
+  "defaultNodeCount": 1,
+  "scalingSchedule": [
+    {
+      "name": "Business Hours",
+      "startHour": 7,
+      "endHour": 19,
+      "nodeCount": 5
+    },
+    {
+      "name": "Off-Peak",
+      "startHour": 19,
+      "endHour": 7,
+      "nodeCount": 1
+    }
+  ]
+}

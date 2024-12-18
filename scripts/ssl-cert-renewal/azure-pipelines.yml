@@ -1,0 +1,37 @@
+trigger: none
+
+schedules:
+- cron: "0 0 1 * *" # Runs on the 1st of every month at midnight UTC
+  always: true
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureServiceConnection: 'MyAzureServiceConnection'
+  keyVaultName: 'myKeyVault'
+  appGatewayName: 'myAppGateway'
+  resourceGroupName: 'myResourceGroup'
+  webAppName: 'myWebApp'
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Login to Azure'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "Logged into Azure..."
+
+- task: AzureCLI@2
+  displayName: 'Renew SSL Certificates'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/ssl-cert-renewal/renew-ssl.ps1'
+    arguments: '-KeyVaultName $(keyVaultName) -AppGatewayName $(appGatewayName) -ResourceGroupName $(resourceGroupName) -WebAppName $(webAppName)'

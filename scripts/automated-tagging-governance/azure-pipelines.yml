@@ -1,0 +1,39 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureServiceConnection: 'MyAzureServiceConnection'
+  subscriptionId: '00000000-0000-0000-0000-000000000000' # Update with your subscription ID
+  costCenter: 'FinanceDept'
+  environment: 'Production'
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Login to Azure'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "Logged into Azure..."
+
+- task: AzureCLI@2
+  displayName: 'Apply Tags to All Resources'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/automated-tagging-governance/apply-tags.ps1'
+    arguments: '-SubscriptionId $(subscriptionId) -CostCenter $(costCenter) -EnvironmentName $(environment)'
+
+- task: AzureCLI@2
+  displayName: 'Check Compliance'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/automated-tagging-governance/check-compliance.ps1'
+    arguments: '-SubscriptionId $(subscriptionId)'

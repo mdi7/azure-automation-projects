@@ -1,0 +1,4 @@
+{
+  "bicepLintRules": ["no-unused-params", "module-name-convention"],
+  "terraformRules": ["no-plain-text-secrets", "provider-version-pin"]
+}

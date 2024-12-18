@@ -1,0 +1,12 @@
+{
+  "domains": [
+    {
+      "name": "example.com",
+      "email": "admin@example.com"
+    },
+    {
+      "name": "api.example.com",
+      "email": "admin@example.com"
+    }
+  ]
+}

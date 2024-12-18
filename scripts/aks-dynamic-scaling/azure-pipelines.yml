@@ -1,0 +1,40 @@
+trigger: none
+
+schedules:
+- cron: "0 7 * * 1-5"  # Example: run every weekday at 07:00 UTC to scale up
+  always: true
+  branches:
+    include:
+      - main
+- cron: "0 19 * * 1-5" # Example: run every weekday at 19:00 UTC to scale down
+  always: true
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureServiceConnection: 'MyAzureServiceConnection'
+  resourceGroupName: 'myResourceGroup'
+  clusterName: 'myAksCluster'
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Login to Azure'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "Logged into Azure..."
+  
+- task: AzureCLI@2
+  displayName: 'Run AKS Scaling Script'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/aks-dynamic-scaling/scale-aks.ps1'
+    arguments: '-ResourceGroupName $(resourceGroupName) -ClusterName $(clusterName)'

@@ -1,0 +1,43 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureServiceConnection: 'MyAzureServiceConnection'
+  resourceGroupName: 'myResourceGroup'
+  webAppName: 'my-webapp'
+  activeSlot: 'blue'    # This can be dynamically checked or known beforehand
+  secondarySlot: 'green' # The slot that is not currently live
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Login to Azure'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "Logged into Azure..."
+
+- task: AzureCLI@2
+  displayName: 'Run Blue-Green Deployment Script'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/blue-green-deployment/deploy-blue-green.ps1'
+    arguments: '-AppName $(webAppName) -ResourceGroup $(resourceGroupName) -ActiveSlot $(activeSlot) -InactiveSlot $(secondarySlot)'
+
+- task: AzureCLI@2
+  displayName: 'Perform Slot Swap if Healthy'
+  condition: succeeded() # Only run if the previous step succeeded
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "Swapping $(InactiveSlot) slot into production..."
+      az webapp deployment slot swap --resource-group $(resourceGroupName) --name $(webAppName) --slot $(InactiveSlot) --target-slot $(ActiveSlot)
+      Write-Host "Deployment Successful!"

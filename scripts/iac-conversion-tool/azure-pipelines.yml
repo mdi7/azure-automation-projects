@@ -1,0 +1,55 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  gitRepoUrl: 'https://github.com/yourusername/converted-iac.git'
+  gitBranch: 'main'
+  azureServiceConnection: 'MyAzureServiceConnection'
+
+steps:
+- task: AzureCLI@2
+  displayName: 'Set up Azure CLI'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "Azure CLI ready."
+
+- task: AzureCLI@2
+  displayName: 'Convert ARM to Bicep'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/iac-conversion-tool/convert-arm-to-bicep.ps1'
+    arguments: '-TemplatesPath $(System.DefaultWorkingDirectory)/iac-conversion-tool/sample-arm-templates'
+
+- task: AzureCLI@2
+  displayName: 'Convert ARM to Terraform'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/iac-conversion-tool/convert-arm-to-terraform.ps1'
+    arguments: '-TemplatesPath $(System.DefaultWorkingDirectory)/iac-conversion-tool/sample-arm-templates'
+
+- task: AzureCLI@2
+  displayName: 'Validate Conversions'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/iac-conversion-tool/validate-conversions.ps1'
+
+- task: AzureCLI@2
+  displayName: 'Push Changes to GitHub'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'ps'
+    scriptLocation: 'scriptPath'
+    scriptPath: '$(System.DefaultWorkingDirectory)/iac-conversion-tool/push-changes.ps1'
+    arguments: '-GitRepoUrl $(gitRepoUrl) -GitBranch $(gitBranch)'

@@ -1,0 +1,29 @@
+{
+  "properties": {
+    "displayName": "Require cost-center and environment tags",
+    "policyType": "Custom",
+    "mode": "Indexed",
+    "description": "This policy ensures all resources have cost-center and environment tags.",
+    "metadata": {
+      "category": "Tagging"
+    },
+    "parameters": {},
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "tags['cost-center']",
+            "exists": "false"
+          },
+          {
+            "field": "tags['environment']",
+            "exists": "false"
+          }
+        ]
+      },
+      "then": {
+        "effect": "deny"
+      }
+    }
+  }
+}
